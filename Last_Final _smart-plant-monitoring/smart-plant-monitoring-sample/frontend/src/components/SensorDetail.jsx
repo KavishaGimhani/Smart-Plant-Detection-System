@@ -133,7 +133,12 @@ const SensorDetail = ({ type, value, unit, data, metricKey, color, min, max }) =
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                           <XAxis dataKey="timestamp" hide />
-                          <YAxis hide domain={[min, max]} />
+                          <YAxis 
+                              domain={['dataMin - 2', 'dataMax + 2']} 
+                              tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
+                              tickLine={false}
+                              axisLine={false}
+                          />
                           <Tooltip 
                               contentStyle={{ 
                                   background: 'white', 
@@ -141,7 +146,8 @@ const SensorDetail = ({ type, value, unit, data, metricKey, color, min, max }) =
                                   borderRadius: '8px', 
                                   boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
                                   fontSize: '0.8rem'
-                              }} 
+                              }}
+                              formatter={(value) => [`${value}${unit}`, title]}
                           />
                           <Area type="monotone" dataKey={metricKey} stroke={color} fill="url(#detailGrad)" strokeWidth={3} />
                       </AreaChart>

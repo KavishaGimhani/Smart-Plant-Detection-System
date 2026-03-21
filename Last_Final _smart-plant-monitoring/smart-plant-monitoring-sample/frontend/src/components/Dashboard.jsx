@@ -46,6 +46,7 @@ const Dashboard = ({ data, latest, loading }) => {
                     <OverviewCard title="Soil Moisture" value={latest.soil_moisture} unit="%" icon={Droplets} color="var(--brand-green)" subText="Stable" />
                     <OverviewCard title="Temperature" value={latest.air_temperature} unit="°C" icon={Thermometer} color="var(--brand-amber)" subText="Optimal" />
                     <OverviewCard title="Air Humidity" value={latest.air_humidity} unit="%" icon={Wind} color="var(--brand-blue)" subText="Stable" />
+                    <OverviewCard title="Light Intensity" value={latest.ldr_light} unit="lx" icon={Sun} color="var(--brand-yellow)" subText="Normal" />
                 </div>
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card chart-card">
@@ -79,9 +80,19 @@ const Dashboard = ({ data, latest, loading }) => {
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis dataKey="timestamp" hide />
-                                <YAxis hide domain={['auto', 'auto']} />
+                                <YAxis 
+                                    domain={['dataMin - 5', 'dataMax + 5']} 
+                                    tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
+                                    tickLine={false}
+                                    axisLine={false}
+                                />
                                 <Tooltip 
-                                    contentStyle={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: 'var(--shadow-md)' }} 
+                                    contentStyle={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: 'var(--shadow-md)' }}
+                                    formatter={(value, name) => {
+                                        if (name === 'soil_moisture') return [`${value}%`, 'Soil Moisture'];
+                                        if (name === 'air_temperature') return [`${value}°C`, 'Temperature'];
+                                        return [value, name];
+                                    }}
                                 />
                                 <Area type="monotone" dataKey="soil_moisture" stroke="var(--brand-green)" fill="url(#gradSoil)" strokeWidth={3} />
                                 <Area type="monotone" dataKey="air_temperature" stroke="var(--brand-amber)" fill="url(#gradTemp)" strokeWidth={3} />
