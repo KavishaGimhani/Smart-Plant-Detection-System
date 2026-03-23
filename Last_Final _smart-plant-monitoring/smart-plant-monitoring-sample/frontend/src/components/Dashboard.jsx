@@ -1,9 +1,9 @@
 import React from 'react';
-import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
+import {
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { 
-  Thermometer, Droplets, Sun, Wind, Bell, Search, Info
+import {
+    Thermometer, Droplets, Sun, Wind, Bell, Search, Info
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -14,8 +14,8 @@ const Dashboard = ({ data, latest, loading }) => {
             <span className="card-label">{title}</span>
             <div className="flex-between">
                 <div>
-                   <div className="card-value">{value ?? '--'}<span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}> {unit}</span></div>
-                   <div style={{ fontSize: '0.75rem', color: 'var(--brand-green)', marginTop: '4px', fontWeight: '600' }}>{subText}</div>
+                    <div className="card-value">{value ?? '--'}<span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}> {unit}</span></div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--brand-green)', marginTop: '4px', fontWeight: '600' }}>{subText}</div>
                 </div>
                 <div className="insight-icon-wrap" style={{ background: `${color}15`, color: color }}>
                     <Icon size={20} />
@@ -80,13 +80,13 @@ const Dashboard = ({ data, latest, loading }) => {
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis dataKey="timestamp" hide />
-                                <YAxis 
-                                    domain={['dataMin - 5', 'dataMax + 5']} 
+                                <YAxis
+                                    domain={['dataMin - 5', 'dataMax + 5']}
                                     tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
                                     tickLine={false}
                                     axisLine={false}
                                 />
-                                <Tooltip 
+                                <Tooltip
                                     contentStyle={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: 'var(--shadow-md)' }}
                                     formatter={(value, name) => {
                                         if (name === 'soil_moisture') return [`${value}%`, 'Soil Moisture'];

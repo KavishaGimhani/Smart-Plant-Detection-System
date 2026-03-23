@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
 import { 
   Droplets, Thermometer, Wind, Sun, 
@@ -44,6 +44,43 @@ const SensorDetail = ({ type, value, unit, data, metricKey, color, min, max }) =
     // Calculate gauge stroke
     const percentage = Math.min(Math.max(((value - min) / (max - min)) * 100, 0), 100);
     const dashOffset = 188 - (percentage * 1.88); // 188 is roughly half circumference for size 120
+
+    const dailyData = React.useMemo(() => {
+        if (!data || data.length === 0) return [];
+        
+        const groups = {};
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        
+        data.forEach(item => {
+            if (!item.timestamp) return;
+            const date = new Date(item.timestamp);
+            const dateStr = date.toLocaleDateString(); // Group by exact date first to avoid crossing weeks if data is long
+            const dayName = days[date.getDay()];
+            const key = dayName; // Or use dateStr if you want unique days across months
+            
+            if (!groups[key]) {
+                groups[key] = { sum: 0, count: 0, dateObj: date };
+            }
+            if (item[metricKey] !== undefined && item[metricKey] !== null) {
+                groups[key].sum += Number(item[metricKey]);
+                groups[key].count += 1;
+            }
+        });
+        
+        const result = Object.keys(groups).map(day => {
+            const avg = groups[day].count > 0 ? groups[day].sum / groups[day].count : 0;
+            return {
+                day,
+                average: parseFloat(avg.toFixed(1)),
+                dateObj: groups[day].dateObj
+            };
+        });
+        
+        // Sort chronologically
+        result.sort((a, b) => a.dateObj - b.dateObj);
+        
+        return result;
+    }, [data, metricKey]);
 
     return (
         <div className="page-content">
@@ -147,10 +184,43 @@ const SensorDetail = ({ type, value, unit, data, metricKey, color, min, max }) =
                                   boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
                                   fontSize: '0.8rem'
                               }}
-                              formatter={(value) => [`${value}${unit}`, title]}
+                              formatter={(value) => [`${value}${unit}`, type]}
                           />
                           <Area type="monotone" dataKey={metricKey} stroke={color} fill="url(#detailGrad)" strokeWidth={3} />
                       </AreaChart>
+                  </ResponsiveContainer>
+              </div>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="card chart-card" style={{ marginTop: '24px' }}>
+              <div className="flex-between" style={{ marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: '800' }}>Daily Averages</h3>
+                <div className="time-chip" style={{ background: 'var(--bg-muted)', border: 'none' }}>Last 7 Days</div>
+              </div>
+              <div style={{ width: '100%', height: 300 }}>
+                  <ResponsiveContainer>
+                      <BarChart data={dailyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                          <YAxis 
+                              domain={['dataMin - 5', 'dataMax + 5']} 
+                              tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
+                              tickLine={false}
+                              axisLine={false}
+                          />
+                          <Tooltip 
+                              cursor={{ fill: 'var(--bg-muted)', opacity: 0.5 }}
+                              contentStyle={{ 
+                                  background: 'white', 
+                                  border: '1px solid #e2e8f0', 
+                                  borderRadius: '8px', 
+                                  boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+                                  fontSize: '0.8rem'
+                              }}
+                              formatter={(val) => [`${val}${unit}`, 'Daily Avg']}
+                          />
+                          <Bar dataKey="average" fill={color} radius={[4, 4, 0, 0]} barSize={32} />
+                      </BarChart>
                   </ResponsiveContainer>
               </div>
             </motion.div>
