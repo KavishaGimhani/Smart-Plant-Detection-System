@@ -4,11 +4,11 @@ import Dashboard from './components/Dashboard';
 import SensorDetail from './components/SensorDetail';
 import History from './components/History';
 import Settings from './components/Settings';
-import {
-  LayoutDashboard,
-  Droplets,
-  Thermometer,
-  Wind,
+import { 
+  LayoutDashboard, 
+  Droplets, 
+  Thermometer, 
+  Wind, 
   Sun,
   History as HistoryIcon,
   Settings as SettingsIcon,
@@ -22,22 +22,15 @@ const API_URL = "https://smart-plant-detection-system-default-rtdb.asia-southeas
 
 function App() {
   const [activePage, setActivePage] = useState('overview');
-  const [data, setData] = useState(() => {
-    const saved = localStorage.getItem('plant_app_data');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    localStorage.setItem('plant_app_data', JSON.stringify(data));
-  }, [data]);
 
   const fetchData = async () => {
     try {
       const response = await axios.get(API_URL);
       const firebaseData = response.data;
       console.log('Firebase data fetched:', firebaseData);
-
+      
       if (firebaseData && typeof firebaseData === 'object' && Object.keys(firebaseData).length > 0) {
         // Convert Firebase object to array and map field names (support both flat single state and history map)
         const normalize = (value) => ({
@@ -45,39 +38,19 @@ function App() {
           air_humidity: value.humidity ?? value.air_humidity ?? null,
           soil_moisture: value.soil ?? value.soil_moisture ?? value.moisture ?? null,
           ldr_light: value.ldr ?? value.ldr_light ?? value.light ?? null,
-          rawTimestamp: typeof value.timestamp === 'number' ? value.timestamp : null,
-          timestamp: typeof value.timestamp === 'string' ? value.timestamp : (value.time || new Date().toISOString())
+          timestamp: value.timestamp ?? value.time ?? new Date().toISOString()
         });
 
         let sensorArray = [];
-        if (firebaseData.readings && typeof firebaseData.readings === 'object') {
-          sensorArray = Object.entries(firebaseData.readings)
+        const isFlatReading = 'temperature' in firebaseData || 'humidity' in firebaseData || 'soil' in firebaseData || 'ldr' in firebaseData;
+        if (isFlatReading) {
+          sensorArray = [normalize(firebaseData)];
+        } else {
+          sensorArray = Object.entries(firebaseData)
             .filter(([, value]) => value && typeof value === 'object')
             .map(([, value]) => normalize(value));
-        } else {
-          const isFlatReading = 'temperature' in firebaseData || 'humidity' in firebaseData || 'soil' in firebaseData || 'ldr' in firebaseData;
-          if (isFlatReading) {
-            sensorArray = [normalize(firebaseData)];
-          } else {
-            sensorArray = Object.entries(firebaseData)
-              .filter(([, value]) => value && typeof value === 'object')
-              .map(([, value]) => normalize(value));
-          }
         }
-
-        // Translate hardware millis() timestamps to real chronological Date strings
-        const hasMillis = sensorArray.some(s => s.rawTimestamp !== null);
-        if (hasMillis && sensorArray.length > 0) {
-            const maxMillis = Math.max(...sensorArray.filter(s => s.rawTimestamp !== null).map(s => s.rawTimestamp));
-            const now = Date.now();
-            sensorArray.forEach(s => {
-                if (s.rawTimestamp !== null) {
-                    const diffMs = maxMillis - s.rawTimestamp;
-                    s.timestamp = new Date(now - diffMs).toISOString();
-                }
-            });
-        }
-
+        
         // Sort by timestamp (most recent first) and take latest 50
         sensorArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         console.log('Processed sensor array:', sensorArray.length, 'entries');
@@ -150,7 +123,7 @@ function App() {
   }, []);
 
   const NavItem = ({ id, label, icon: Icon }) => (
-    <button
+    <button 
       className={`sidebar-item ${activePage === id ? 'active' : ''}`}
       onClick={() => setActivePage(id)}
     >
@@ -205,24 +178,24 @@ function App() {
       {/* ─── Main Content ─── */}
       <main className="main-content">
         {activePage === 'overview' && <Dashboard data={data} latest={latest} loading={loading} />}
-
+        
         {activePage === 'soil' && (
-          <SensorDetail
-            type="Soil Moisture"
-            value={latest.soil_moisture}
-            unit="%"
+          <SensorDetail 
+            type="Soil Moisture" 
+            value={latest.soil_moisture} 
+            unit="%" 
             data={data}
             metricKey="soil_moisture"
             color="var(--brand-green)"
             min={0} max={4095}
           />
         )}
-
+        
         {activePage === 'temp' && (
-          <SensorDetail
-            type="Temperature"
-            value={latest.air_temperature}
-            unit="°C"
+          <SensorDetail 
+            type="Temperature" 
+            value={latest.air_temperature} 
+            unit="°C" 
             data={data}
             metricKey="air_temperature"
             color="var(--brand-amber)"
@@ -231,10 +204,10 @@ function App() {
         )}
 
         {activePage === 'hum' && (
-          <SensorDetail
-            type="Humidity"
-            value={latest.air_humidity}
-            unit="%"
+          <SensorDetail 
+            type="Humidity" 
+            value={latest.air_humidity} 
+            unit="%" 
             data={data}
             metricKey="air_humidity"
             color="var(--brand-blue)"
@@ -243,10 +216,10 @@ function App() {
         )}
 
         {activePage === 'light' && (
-          <SensorDetail
-            type="Light Intensity"
-            value={latest.ldr_light}
-            unit="lux"
+          <SensorDetail 
+            type="Light Intensity" 
+            value={latest.ldr_light} 
+            unit="lux" 
             data={data}
             metricKey="ldr_light"
             color="var(--brand-purple)"

@@ -8,22 +8,152 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const SensorDetail = ({ type, value, unit, data, metricKey, color, min, max }) => {
+const SensorDetail = ({ type, value, unit, data, fullData, metricKey, color, min, max }) => {
     // Mock insights based on current value
     const getInsights = () => {
         if (type === "Soil Moisture") {
             const val = value || 0;
-            const health = val > 2000 ? "Monitor Closely" : "Optimal";
-            const color = val > 2000 ? "var(--brand-amber)" : "var(--brand-green)";
+            let health = "Unknown";
+            let color = "var(--text-muted)";
+            let recommendation = "";
+            
+            if (val < 30) {
+                health = "Dry";
+                color = "var(--brand-amber)"; // or red
+                recommendation = "Watering required immediately.";
+            } else if (val < 70) {
+                health = "Healthy";
+                color = "var(--brand-green)";
+                recommendation = "Current moisture levels are optimal.";
+            } else {
+                health = "Too Wet";
+                color = "var(--brand-blue)";
+                recommendation = "Hold off on watering to prevent root rot.";
+            }
             
             return {
                 health,
                 healthColor: color,
-                recommendation: val > 2000 ? "Consider watering in the next 12 hours" : "Current moisture levels are sufficient.",
+                recommendation,
                 insights: [
                     { title: "Watering Recommendation", desc: "Next watering recommended in 18-24 hours based on current soil drying rate.", icon: Droplets, iconBg: "var(--brand-blue-soft)", iconColor: "var(--brand-blue)" },
                     { title: "Evaporation Rate", desc: "Current air temperature is causing moderate evaporation. Moisture dropping at ~2.3% per day.", icon: Wind, iconBg: "var(--brand-amber-soft)", iconColor: "var(--brand-amber)" },
                     { title: "Water Retention", desc: "Soil quality is good with moderate water retention capacity. Consider adding mulch.", icon: TrendingUp, iconBg: "var(--brand-green-soft)", iconColor: "var(--brand-green)" }
+                ]
+            };
+        } else if (type === "Temperature") {
+            const val = value || 0;
+            let health = "Unknown";
+            let color = "var(--text-muted)";
+            let recommendation = "";
+            
+            if (val < 18) {
+                health = "Cold";
+                color = "var(--brand-blue)";
+                recommendation = "Consider moving the plant to a warmer location.";
+            } else if (val < 32) {
+                health = "Optimal";
+                color = "var(--brand-green)";
+                recommendation = "Current temperature is ideal for growth.";
+            } else {
+                health = "Hot";
+                color = "var(--brand-red)";
+                recommendation = "Ensure adequate ventilation or shading to prevent heat stress.";
+            }
+            
+            return {
+                health,
+                healthColor: color,
+                recommendation,
+                insights: [
+                    { title: "Temperature Assessment", desc: `Current temperature is ${val}°C, which is considered ${health.toLowerCase()} for typical house plants.`, icon: Thermometer, iconBg: "var(--brand-amber-soft)", iconColor: "var(--brand-amber)" },
+                    { title: "Growth Rate", desc: val < 18 ? "Growth might slow down due to low temperatures." : (val < 32 ? "Optimal temperature ensures steady and healthy growth." : "High temperatures can dry out the soil quickly."), icon: TrendingUp, iconBg: "var(--brand-green-soft)", iconColor: "var(--brand-green)" }
+                ]
+            };
+        } else if (type === "Light Intensity") {
+            const val = value || 0;
+            let health = "Unknown";
+            let color = "var(--text-muted)";
+            let recommendation = "";
+            let desc = "";
+
+            if (val < 20) {
+                health = "Too Dark";
+                color = "var(--text-muted)";
+                recommendation = "Move the plant to a brighter location to allow photosynthesis.";
+                desc = "Plant cannot photosynthesize efficiently at this light level.";
+            } else if (val < 40) {
+                health = "Low Light";
+                color = "var(--brand-blue)";
+                recommendation = "Plant is surviving but not thriving. More light would be beneficial.";
+                desc = "Current lighting is sufficient for survival but not optimal growth.";
+            } else if (val < 75) {
+                health = "Healthy";
+                color = "var(--brand-green)";
+                recommendation = "Current light intensity is ideal for most houseplants.";
+                desc = "Ideal light exposure for optimal health and growth.";
+            } else if (val < 90) {
+                health = "Bright Light";
+                color = "var(--brand-yellow)";
+                recommendation = "Good for sun-loving plants, but monitor for heat stress.";
+                desc = "Bright direct light exposure, perfect for sun-tolerant species.";
+            } else {
+                health = "Too Bright";
+                color = "var(--brand-red)";
+                recommendation = "Provide some shade to prevent leaf burn.";
+                desc = "High light intensity may cause leaf burn or rapid soil drying.";
+            }
+
+            return {
+                health,
+                healthColor: color,
+                recommendation,
+                insights: [
+                    { title: "Light Exposure", desc, icon: Sun, iconBg: "var(--brand-yellow-soft)", iconColor: "var(--brand-yellow)" },
+                    { title: "Growth Rate", desc: val < 40 ? "Growth is severely limited by available light." : (val < 90 ? "Optimal light supports robust daily growth." : "Too much direct sun may damage delicate plant tissues over time."), icon: TrendingUp, iconBg: "var(--brand-green-soft)", iconColor: "var(--brand-green)" }
+                ]
+            };
+        } else if (type === "Humidity") {
+            const val = value || 0;
+            let health = "Unknown";
+            let color = "var(--text-muted)";
+            let recommendation = "";
+            let desc = "";
+
+            if (val < 30) {
+                health = "Too Dry";
+                color = "var(--brand-red)";
+                recommendation = "Mist the plant, use a humidifier, or create a pebble tray.";
+                desc = "Air is too dry, which causes brown leaf tips and crispy edges.";
+            } else if (val < 40) {
+                health = "Low";
+                color = "var(--brand-amber)";
+                recommendation = "Tolerable for some plants, but tropicals need more moisture.";
+                desc = "Humidity is on the lower side for typical indoor plants.";
+            } else if (val < 60) {
+                health = "Optimal";
+                color = "var(--brand-green)";
+                recommendation = "Current air humidity is ideal for most houseplants.";
+                desc = "Perfect balance of moisture in the air.";
+            } else if (val < 80) {
+                health = "High";
+                color = "var(--brand-blue)";
+                recommendation = "Excellent for tropical plants like ferns and calatheas.";
+                desc = "High humidity promotes lush green foliage.";
+            } else {
+                health = "Too Humid";
+                color = "var(--brand-red)";
+                recommendation = "Ensure good airflow to prevent fungal diseases and mold.";
+                desc = "Excessively high humidity without ventilation risks fungal growth.";
+            }
+
+            return {
+                health,
+                healthColor: color,
+                recommendation,
+                insights: [
+                    { title: "Air Moisture Level", desc, icon: Wind, iconBg: "var(--brand-blue-soft)", iconColor: "var(--brand-blue)" },
+                    { title: "Plant Hydration", desc: val < 40 ? "Low humidity causes plants to lose water faster through leaves." : (val < 80 ? "Healthy humidity reduces the need for frequent soil watering." : "High moisture minimizes leaf transpiration."), icon: Droplets, iconBg: "var(--brand-green-soft)", iconColor: "var(--brand-green)" }
                 ]
             };
         }
@@ -46,24 +176,31 @@ const SensorDetail = ({ type, value, unit, data, metricKey, color, min, max }) =
     const dashOffset = 188 - (percentage * 1.88); // 188 is roughly half circumference for size 120
 
     const dailyData = React.useMemo(() => {
-        if (!data || data.length === 0) return [];
+        const sourceData = fullData && fullData.length > 0 ? fullData : data;
+        if (!sourceData || sourceData.length === 0) return [];
         
         const groups = {};
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         
-        data.forEach(item => {
+        // Pad array mathematically to always show 7 days history labels
+        const today = new Date();
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(today.getDate() - i);
+            const dName = days[d.getDay()];
+            groups[dName] = { sum: 0, count: 0, dateObj: new Date(d.getFullYear(), d.getMonth(), d.getDate()) };
+        }
+        
+        sourceData.forEach(item => {
             if (!item.timestamp) return;
             const date = new Date(item.timestamp);
-            const dateStr = date.toLocaleDateString(); // Group by exact date first to avoid crossing weeks if data is long
             const dayName = days[date.getDay()];
-            const key = dayName; // Or use dateStr if you want unique days across months
             
-            if (!groups[key]) {
-                groups[key] = { sum: 0, count: 0, dateObj: date };
-            }
-            if (item[metricKey] !== undefined && item[metricKey] !== null) {
-                groups[key].sum += Number(item[metricKey]);
-                groups[key].count += 1;
+            if (groups[dayName]) {
+                if (item[metricKey] !== undefined && item[metricKey] !== null) {
+                    groups[dayName].sum += Number(item[metricKey]);
+                    groups[dayName].count += 1;
+                }
             }
         });
         
@@ -80,7 +217,7 @@ const SensorDetail = ({ type, value, unit, data, metricKey, color, min, max }) =
         result.sort((a, b) => a.dateObj - b.dateObj);
         
         return result;
-    }, [data, metricKey]);
+    }, [fullData, data, metricKey]);
 
     return (
         <div className="page-content">
